@@ -1,0 +1,187 @@
+name: ML - Train Model
+
+on:
+  schedule:
+    # Run every Sunday at 2 AM UTC (weekly retraining check)
+    - cron: '0 2 * * 0'
+  workflow_dispatch:
+    inputs:
+      skip_approval:
+        description: 'Skip automatic approval (for testing)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+      force_retrain:
+        description: 'Force retraining (skip trigger check)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+jobs:
+  check-trigger:
+    runs-on: ubuntu-latest
+    outputs:
+      should_train: ${{ steps.decision.outputs.should_train }}
+      reason: ${{ steps.decision.outputs.reason }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r backend/requirements.txt
+        
+    - name: Check if retraining is needed
+      id: decision
+      run: |
+        if [ "${{ inputs.force_retrain }}" = "true" ]; then
+          echo "should_train=true" >> $GITHUB_OUTPUT
+          echo "reason=Manual force retrain requested" >> $GITHUB_OUTPUT
+          echo "🔄 Force retrain enabled - skipping trigger check"
+        else
+          # Run trigger check
+          python -m backend.ml.retrain_trigger --format json > decision.json
+          
+          SHOULD_TRAIN=$(python -c "import json; print(json.load(open('decision.json'))['should_retrain'])")
+          REASON=$(python -c "import json; print(json.load(open('decision.json'))['reason'])")
+          
+          echo "should_train=$SHOULD_TRAIN" >> $GITHUB_OUTPUT
+          echo "reason=$REASON" >> $GITHUB_OUTPUT
+          echo "Decision: $SHOULD_TRAIN"
+          echo "Reason: $REASON"
+        fi
+        
+    - name: Upload trigger decision
+      uses: actions/upload-artifact@v4
+      with:
+        name: trigger-decision
+        path: decision.json
+        retention-days: 30
+      if: inputs.force_retrain != 'true'
+
+  train:
+    needs: check-trigger
+    runs-on: ubuntu-latest
+    if: needs.check-trigger.outputs.should_train == 'true'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r backend/requirements.txt
+        
+    - name: Build dataset
+      run: |
+        python -m backend.ml.build_dataset
+        echo "✅ Dataset built successfully"
+        
+    - name: Train new model
+      id: train
+      run: |
+        if [ "${{ inputs.skip_approval }}" = "true" ]; then
+          python -m backend.ml.train --ci-mode --skip-approval
+        else
+          python -m backend.ml.train --ci-mode
+        fi
+        
+        # Extract version from registry
+        VERSION=$(python -c "import json; print(json.load(open('backend/ml/artifacts/registry.json'))['approved_version'])")
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "✅ Training complete: $VERSION"
+        
+    - name: Upload model artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: model-${{ steps.train.outputs.version }}
+        path: |
+          backend/ml/artifacts/models/${{ steps.train.outputs.version }}/
+          backend/ml/artifacts/registry.json
+        retention-days: 30
+        
+    - name: Upload confusion matrix
+      uses: actions/upload-artifact@v4
+      with:
+        name: confusion-matrix-${{ steps.train.outputs.version }}
+        path: backend/ml/artifacts/cm_${{ steps.train.outputs.version }}.png
+        retention-days: 30
+        
+    - name: Read model metrics
+      id: metrics
+      run: |
+        METRICS=$(python -c "
+        import json
+        meta = json.load(open('backend/ml/artifacts/models/${{ steps.train.outputs.version }}/metadata.json'))
+        print(f\"Accuracy: {meta['metrics']['accuracy']:.2%}\")
+        print(f\"Macro F1: {meta['metrics']['macro_f1']:.2%}\")
+        print(f\"Algorithm: {meta['algorithm']}\")
+        ")
+        echo "$METRICS"
+        echo "metrics<<EOF" >> $GITHUB_OUTPUT
+        echo "$METRICS" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+        
+    - name: Create success summary
+      run: |
+        echo "## 🎯 Model Training Complete" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Version:** ${{ steps.train.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Metrics" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "${{ steps.metrics.outputs.metrics }}" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "📊 Confusion matrix and full artifacts uploaded." >> $GITHUB_STEP_SUMMARY
+
+  notify:
+    needs: train
+    runs-on: ubuntu-latest
+    if: success()
+    
+    steps:
+    - name: Create notification issue
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const title = `🤖 New model trained: Review required`;
+          const body = `A new model has been trained and requires review.
+          
+          **Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          
+          **Next Steps:**
+          1. Download artifacts from the workflow run
+          2. Review metrics and confusion matrix
+          3. Approve or reject the model
+          
+          cc: @${{ github.repository_owner }}`;
+          
+          await github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: title,
+            body: body,
+            labels: ['ml-ops', 'model-review']
+          });

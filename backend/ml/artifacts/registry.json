@@ -1,0 +1,334 @@
+{
+  "approved_model_version": "1.0.3",
+  "approved_at": "2026-10-28T03:12:42.632676",
+  "history": [
+    {
+      "version": "1.0.0",
+      "algorithm": "RandomForestClassifier",
+      "hyperparameters": {
+        "n_estimators": 120,
+        "max_depth": 7,
+        "min_samples_split": 3,
+        "min_samples_leaf": 1,
+        "random_state": 42
+      },
+      "metrics": {
+        "accuracy": 1.0,
+        "macro_precision": 0.75,
+        "macro_recall": 0.75,
+        "macro_f1": 0.75,
+        "per_class": {
+          "Easy": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 4
+          },
+          "Medium": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 2
+          },
+          "Hard": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 0
+          },
+          "Very Hard": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 6
+          }
+        },
+        "confusion_matrix": [
+          [
+            4,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            2,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            6
+          ]
+        ],
+        "class_labels": [
+          "Easy",
+          "Medium",
+          "Hard",
+          "Very Hard"
+        ]
+      },
+      "dataset_version": "1.0.0",
+      "feature_schema_version": "1.0.0",
+      "training_duration_seconds": 1.26,
+      "mlflow_run_id": "2ff5b855006040e784ea83e3a68af574",
+      "created_at": "2026-10-28T01:38:17.615660",
+      "approved": true,
+      "approval_reason": "Candidate v1.0.0 met all acceptance criteria (Accuracy: 1.0000, Macro F1: 0.7500)."
+    },
+    {
+      "version": "1.0.1",
+      "algorithm": "RandomForestClassifier",
+      "hyperparameters": {
+        "n_estimators": 120,
+        "max_depth": 7,
+        "min_samples_split": 3,
+        "min_samples_leaf": 1,
+        "random_state": 42
+      },
+      "metrics": {
+        "accuracy": 1.0,
+        "macro_precision": 0.75,
+        "macro_recall": 0.75,
+        "macro_f1": 0.75,
+        "per_class": {
+          "Easy": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 4
+          },
+          "Medium": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 2
+          },
+          "Hard": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 0
+          },
+          "Very Hard": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 6
+          }
+        },
+        "confusion_matrix": [
+          [
+            4,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            2,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            6
+          ]
+        ],
+        "class_labels": [
+          "Easy",
+          "Medium",
+          "Hard",
+          "Very Hard"
+        ]
+      },
+      "dataset_version": "1.0.0",
+      "feature_schema_version": "1.0.0",
+      "training_duration_seconds": 1.55,
+      "mlflow_run_id": "9110f3cc8bc04231a921ff1744aeed0e",
+      "created_at": "2026-10-28T02:01:27.796558",
+      "approved": true,
+      "approval_reason": "Candidate v1.0.1 met all acceptance criteria (Accuracy: 1.0000, Macro F1: 0.7500)."
+    },
+    {
+      "version": "1.0.2",
+      "algorithm": "RandomForestClassifier",
+      "hyperparameters": {
+        "n_estimators": 120,
+        "max_depth": 7,
+        "min_samples_split": 3,
+        "min_samples_leaf": 1,
+        "random_state": 42
+      },
+      "metrics": {
+        "accuracy": 0.9,
+        "macro_precision": 0.9167,
+        "macro_recall": 0.875,
+        "macro_f1": 0.8667,
+        "per_class": {
+          "Easy": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 4
+          },
+          "Medium": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 2
+          },
+          "Hard": {
+            "precision": 1.0,
+            "recall": 0.5,
+            "f1": 0.6667,
+            "support": 2
+          },
+          "Very Hard": {
+            "precision": 0.6667,
+            "recall": 1.0,
+            "f1": 0.8,
+            "support": 2
+          }
+        },
+        "confusion_matrix": [
+          [
+            4,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            2,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            1,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            2
+          ]
+        ],
+        "class_labels": [
+          "Easy",
+          "Medium",
+          "Hard",
+          "Very Hard"
+        ]
+      },
+      "dataset_version": "1.0.0",
+      "feature_schema_version": "1.0.0",
+      "training_duration_seconds": 1.63,
+      "mlflow_run_id": "ac5a4be0979f4e63856f954c38979b66",
+      "created_at": "2026-10-28T02:56:45.697784",
+      "approved": true,
+      "approval_reason": "Candidate v1.0.2 met all acceptance criteria (Accuracy: 0.9000, Macro F1: 0.8667)."
+    },
+    {
+      "version": "1.0.3",
+      "algorithm": "RandomForestClassifier",
+      "hyperparameters": {
+        "n_estimators": 120,
+        "max_depth": 7,
+        "min_samples_split": 3,
+        "min_samples_leaf": 1,
+        "random_state": 42
+      },
+      "metrics": {
+        "accuracy": 0.9,
+        "macro_precision": 0.9167,
+        "macro_recall": 0.875,
+        "macro_f1": 0.8667,
+        "per_class": {
+          "Easy": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 4
+          },
+          "Medium": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 2
+          },
+          "Hard": {
+            "precision": 1.0,
+            "recall": 0.5,
+            "f1": 0.6667,
+            "support": 2
+          },
+          "Very Hard": {
+            "precision": 0.6667,
+            "recall": 1.0,
+            "f1": 0.8,
+            "support": 2
+          }
+        },
+        "confusion_matrix": [
+          [
+            4,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            2,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            1,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            2
+          ]
+        ],
+        "class_labels": [
+          "Easy",
+          "Medium",
+          "Hard",
+          "Very Hard"
+        ]
+      },
+      "dataset_version": "1.0.0",
+      "feature_schema_version": "1.0.0",
+      "training_duration_seconds": 0.58,
+      "mlflow_run_id": "c32e646fd6d7402a805d1c7c9abacfab",
+      "created_at": "2026-10-28T03:12:42.632676",
+      "approved": true,
+      "approval_reason": "Candidate v1.0.3 met all acceptance criteria (Accuracy: 0.9000, Macro F1: 0.8667)."
+    }
+  ]
+}

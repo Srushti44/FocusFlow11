@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FocusFlow Side Panel</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #F4F0E8;
+    }
+    #panel-frame {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+    #fallback-panel {
+      display: none;
+      width: 100%;
+      height: 100%;
+      padding: 16px;
+      overflow-y: auto;
+      background: #F4F0E8;
+      color: #151515;
+    }
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 3px solid #151515;
+      padding-bottom: 10px;
+      margin-bottom: 16px;
+    }
+    .badge {
+      background: #D7FF38;
+      border: 2px solid #151515;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 2px 6px;
+      box-shadow: 2px 2px 0px #151515;
+    }
+    .card {
+      background: #FFFFFF;
+      border: 3px solid #151515;
+      box-shadow: 4px 4px 0px #151515;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+    .btn {
+      width: 100%;
+      background: #2455FF;
+      color: #FFFFFF;
+      border: 3px solid #151515;
+      box-shadow: 4px 4px 0px #151515;
+      padding: 10px 14px;
+      font-weight: 800;
+      cursor: pointer;
+      text-transform: uppercase;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+    .btn:hover {
+      background: #1940d0;
+      transform: translate(1px, 1px);
+      box-shadow: 2px 2px 0px #151515;
+    }
+  </style>
+</head>
+<body>
+  <iframe id="panel-frame" src="http://localhost:5173/?view=sidepanel"></iframe>
+
+  <div id="fallback-panel">
+    <div class="panel-header">
+      <div style="font-weight: 800; font-size: 16px;">FOCUSFLOW SIDE PANEL</div>
+      <span class="badge">OFFLINE READY</span>
+    </div>
+
+    <div class="card" id="article-card">
+      <h3 id="panel-title" style="font-size: 15px; font-weight: 800; margin-bottom: 8px;">Waiting for article...</h3>
+      <div id="panel-meta" style="font-size: 11px; color: #666; margin-bottom: 12px;"></div>
+      <p id="panel-body" style="font-size: 13px; line-height: 1.5; color: #222;"></p>
+    </div>
+
+    <button class="btn" id="btn-launch-web">Open Full FocusFlow App</button>
+  </div>
+
+  <script>
+    const frame = document.getElementById('panel-frame');
+    const fallback = document.getElementById('fallback-panel');
+    let iframeLoaded = false;
+
+    // Detect if localhost:5173 loads within 2 seconds; if not, show fallback panel
+    const timeout = setTimeout(() => {
+      if (!iframeLoaded) {
+        checkLocalArticle();
+      }
+    }, 2500);
+
+    frame.onload = () => {
+      iframeLoaded = true;
+      clearTimeout(timeout);
+    };
+
+    function checkLocalArticle() {
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        chrome.storage.local.get(['focusflow_active_article'], (res) => {
+          const art = res.focusflow_active_article;
+          if (art && art.title) {
+            frame.style.display = 'none';
+            fallback.style.display = 'block';
+            document.getElementById('panel-title').innerText = art.title;
+            document.getElementById('panel-meta').innerText = `${art.domain || 'Source'} • Extracted via FocusFlow`;
+            document.getElementById('panel-body').innerText = (art.raw_content || '').slice(0, 600) + '...';
+          }
+        });
+      }
+    }
+
+    document.getElementById('btn-launch-web').onclick = () => {
+      if (typeof chrome !== 'undefined' && chrome.tabs) {
+        chrome.tabs.create({ url: 'http://localhost:5173/?view=reader' });
+      } else {
+        window.open('http://localhost:5173/?view=reader', '_blank');
+      }
+    };
+  </script>
+</body>
+</html>

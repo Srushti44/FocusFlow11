@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FocusFlow Extension</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    body {
+      width: 380px;
+      min-height: 490px;
+      background-color: #F4F0E8;
+      color: #151515;
+      padding: 16px;
+      overflow-x: hidden;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 3px solid #151515;
+      padding-bottom: 12px;
+      margin-bottom: 14px;
+    }
+    .brand {
+      font-weight: 800;
+      font-size: 18px;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge {
+      background: #D7FF38;
+      border: 2px solid #151515;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 2px 6px;
+      box-shadow: 2px 2px 0px #151515;
+    }
+    .status-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border: 2px solid #151515;
+      box-shadow: 2px 2px 0px #151515;
+    }
+    .status-ready {
+      background: #D7FF38;
+      color: #151515;
+    }
+    .status-warn {
+      background: #FF6B4A;
+      color: #FFFFFF;
+    }
+    .card {
+      background: #FFFFFF;
+      border: 3px solid #151515;
+      box-shadow: 4px 4px 0px #151515;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+    .article-title {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.35;
+      margin-bottom: 8px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #555;
+      margin-bottom: 10px;
+    }
+    .meta-tag {
+      background: #EAE6DC;
+      padding: 2px 6px;
+      border: 1px solid #151515;
+    }
+    .snippet-box {
+      font-size: 12px;
+      line-height: 1.45;
+      color: #444;
+      background: #FAF8F5;
+      border-left: 3px solid #2455FF;
+      padding: 8px 10px;
+      margin-bottom: 12px;
+      font-style: italic;
+      max-height: 68px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .btn {
+      width: 100%;
+      background: #2455FF;
+      color: #FFFFFF;
+      border: 3px solid #151515;
+      box-shadow: 4px 4px 0px #151515;
+      padding: 11px 14px;
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.1s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .btn:hover {
+      background: #1940d0;
+      box-shadow: 2px 2px 0px #151515;
+      transform: translate(2px, 2px);
+    }
+    .btn-secondary {
+      background: #FFFFFF;
+      color: #151515;
+    }
+    .btn-secondary:hover {
+      background: #D7FF38;
+    }
+    .status-box {
+      font-size: 12px;
+      padding: 10px;
+      border: 2px solid #151515;
+      background: #E6E1D5;
+      margin-bottom: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .controls-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .control-pill {
+      border: 2px solid #151515;
+      padding: 6px;
+      background: #fff;
+      display: flex;
+      justify-content: space-between;
+    }
+    .footer {
+      font-size: 11px;
+      font-weight: 700;
+      text-align: center;
+      color: #777;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="brand">
+      FOCUSFLOW
+      <span class="badge">V3</span>
+    </div>
+    <span id="header-status" class="status-badge status-ready">SCANNING</span>
+  </div>
+
+  <div id="detection-area">
+    <div class="status-box" id="status-label">
+      🔍 Scanning active browser tab for readable article...
+    </div>
+
+    <!-- Article Preview Card -->
+    <div class="card" id="article-preview" style="display: none;">
+      <div class="article-title" id="page-title">Detecting Title...</div>
+      
+      <div class="meta-row">
+        <span class="meta-tag" id="page-domain">domain.com</span>
+        <span class="meta-tag" id="page-words">0 words</span>
+        <span class="meta-tag" id="page-time">~0 min read</span>
+        <span class="meta-tag" id="page-author" style="display: none;">By Author</span>
+      </div>
+
+      <div class="snippet-box" id="page-snippet">
+        Article preview snippet loading...
+      </div>
+
+      <button class="btn" id="btn-transform">
+        ⚡ TRANSFORM IN FOCUSFLOW
+      </button>
+
+      <button class="btn btn-secondary" id="btn-sidepanel">
+        📖 Open in Chrome Side Panel
+      </button>
+    </div>
+
+    <!-- Unsupported / Empty State -->
+    <div class="card" id="unsupported-box" style="display: none; background: #FFF5F5;">
+      <h4 style="font-weight: 800; font-size: 14px; margin-bottom: 6px; color: #D62828;">⚠️ Unsupported Page</h4>
+      <p style="font-size: 12px; line-height: 1.45; color: #444; margin-bottom: 12px;" id="unsupported-msg">
+        FocusFlow requires a readable webpage or article.
+      </p>
+      <button class="btn btn-secondary" id="btn-open-workspace" style="background: #2455FF; color: #fff;">
+        Open FocusFlow Workspace
+      </button>
+    </div>
+  </div>
+
+  <!-- Quick Preferences Indicator -->
+  <div class="card" style="margin-top: 8px; background: #FAF8F5;">
+    <div style="font-size: 11px; font-weight: 800; margin-bottom: 6px; text-transform: uppercase;">
+      Active Reading Configuration
+    </div>
+    <div class="controls-grid">
+      <div class="control-pill">
+        <span>CHUNKS:</span> <strong style="color: #2455FF;">60-90W</strong>
+      </div>
+      <div class="control-pill">
+        <span>BIONIC:</span> <strong style="color: #2455FF;">SACCADIC</strong>
+      </div>
+      <div class="control-pill">
+        <span>FONT:</span> <strong style="color: #2455FF;">LEXEND</strong>
+      </div>
+      <div class="control-pill">
+        <span>AI:</span> <strong style="color: #2455FF;">READY</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Less Noise. More Focus. • Chrome Manifest V3
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

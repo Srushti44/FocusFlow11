@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-warm: #F4F0E8;
+    --ink-black: #151515;
+    --electric-blue: #2455FF;
+    --acid-lime: #D7FF38;
+  }
+
+  body {
+    background-color: var(--bg-warm);
+    color: var(--ink-black);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Accessibility Keyboard Focus Styles */
+  *:focus-visible {
+    outline: 3px solid #2455FF !important;
+    outline-offset: 3px !important;
+  }
+}
+
+/* Neo-Brutalist Utility Classes */
+.brutal-border {
+  border: 3px solid #151515;
+}
+
+.brutal-border-thick {
+  border: 4px solid #151515;
+}
+
+.brutal-shadow {
+  box-shadow: 4px 4px 0px #151515;
+}
+
+.brutal-shadow-sm {
+  box-shadow: 2px 2px 0px #151515;
+}
+
+.brutal-shadow-lg {
+  box-shadow: 6px 6px 0px #151515;
+}
+
+.brutal-btn-active:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px #151515;
+}
+
+/* Accessible Font Families */
+.font-dyslexic {
+  font-family: 'OpenDyslexic', 'Comic Sans MS', sans-serif !important;
+}
+
+.font-lexend {
+  font-family: 'Lexend', sans-serif !important;
+}
+
+.font-atkinson {
+  font-family: 'Atkinson Hyperlegible', sans-serif !important;
+}
+
+/* Reading Ruler Mask Animation & Styles */
+.focus-ruler-overlay {
+  pointer-events: none;
+  position: fixed;
+  left: 0;
+  width: 100vw;
+  height: 56px;
+  background: rgba(215, 255, 56, 0.16);
+  border-top: 2px dashed #151515;
+  border-bottom: 2px dashed #151515;
+  z-index: 9999;
+  transform: translateY(-50%);
+  transition: top 0.04s ease-out;
+}
+
+.dark .focus-ruler-overlay {
+  background: rgba(215, 255, 56, 0.12);
+  border-top: 2px dashed #D7FF38;
+  border-bottom: 2px dashed #D7FF38;
+}
+
+/* Reduced Motion Override */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

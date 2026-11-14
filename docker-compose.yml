@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: focusflow-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - LLM_PROVIDER=none # Defaults to deterministic local NLP unless API keys supplied
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - MLFLOW_TRACKING_URI=${MLFLOW_TRACKING_URI:-sqlite:///app/backend/ml/artifacts/mlflow.db}
+    volumes:
+      - ./backend/ml/artifacts:/app/backend/ml/artifacts
+      - ./backend/focusflow.db:/app/backend/focusflow.db
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: focusflow-frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # Optional: MLflow Tracking Server
+  # Uncomment to enable MLflow UI for experiment tracking
+  # mlflow:
+  #   image: ghcr.io/mlflow/mlflow:v2.11.0
+  #   container_name: focusflow-mlflow
+  #   ports:
+  #     - "5000:5000"
+  #   volumes:
+  #     - ./backend/ml/artifacts:/mlflow
+  #   command: >
+  #     mlflow server
+  #     --backend-store-uri sqlite:///mlflow/mlflow.db
+  #     --default-artifact-root /mlflow/artifacts
+  #     --host 0.0.0.0
+  #     --port 5000
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - backend

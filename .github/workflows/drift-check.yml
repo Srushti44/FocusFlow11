@@ -1,0 +1,120 @@
+name: ML - Drift Monitoring
+
+on:
+  schedule:
+    # Run every day at 3 AM UTC
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    inputs:
+      shift_magnitude:
+        description: 'Simulation shift magnitude (for testing)'
+        required: false
+        default: '2.0'
+        type: string
+
+jobs:
+  check-drift:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r backend/requirements.txt
+        
+    - name: Generate drift report (simulated)
+      id: drift
+      run: |
+        # In production, you'd fetch real production data here
+        # For now, we simulate drift detection
+        python -m backend.ml.drift_report --simulate --shift ${{ inputs.shift_magnitude || '2.0' }}
+        
+        # Check if drift was detected
+        DRIFT_DETECTED=$(python -c "
+        import json
+        from pathlib import Path
+        from backend.ml.drift_report import simulate_drift_report
+        result = simulate_drift_report(float('${{ inputs.shift_magnitude || '2.0' }}'))
+        print('true' if result['dataset_drift_detected'] or result['psi_exceeded'] else 'false')
+        ")
+        
+        echo "drift_detected=$DRIFT_DETECTED" >> $GITHUB_OUTPUT
+        echo "Drift detected: $DRIFT_DETECTED"
+        
+    - name: Upload drift report
+      uses: actions/upload-artifact@v4
+      with:
+        name: drift-report-${{ github.run_number }}
+        path: backend/ml/artifacts/drift_reports/
+        retention-days: 90
+        
+    - name: Create drift summary
+      run: |
+        echo "## 📊 Drift Monitoring Report" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Date:** $(date -u +'%Y-%m-%d %H:%M UTC')" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "${{ steps.drift.outputs.drift_detected }}" = "true" ]; then
+          echo "### ⚠️ Drift Detected" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Data distribution has shifted from training baseline." >> $GITHUB_STEP_SUMMARY
+          echo "Review the drift report and consider retraining." >> $GITHUB_STEP_SUMMARY
+        else
+          echo "### ✅ No Significant Drift" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Data distribution remains stable." >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "📁 Download the detailed HTML report from workflow artifacts." >> $GITHUB_STEP_SUMMARY
+
+  notify-on-drift:
+    needs: check-drift
+    runs-on: ubuntu-latest
+    if: needs.check-drift.outputs.drift_detected == 'true'
+    
+    steps:
+    - name: Create drift alert issue
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const title = `⚠️ Data Drift Detected - Review Required`;
+          const body = `Data drift has been detected in production inference data.
+          
+          **Detection Date:** ${new Date().toISOString().split('T')[0]}
+          **Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          
+          ## Recommended Actions
+          
+          1. Download the drift report from workflow artifacts
+          2. Review the Evidently AI HTML dashboard
+          3. Analyze which features have drifted
+          4. Consider triggering a retraining workflow
+          5. Update training data if necessary
+          
+          ## Next Steps
+          
+          - [ ] Review drift report
+          - [ ] Analyze root cause
+          - [ ] Decide: retrain or monitor
+          - [ ] Document decision
+          
+          cc: @${{ github.repository_owner }}`;
+          
+          await github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: title,
+            body: body,
+            labels: ['ml-ops', 'drift-alert', 'high-priority']
+          });
